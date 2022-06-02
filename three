@@ -1,0 +1,264 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+struct Account
+{
+	
+	char name[100];
+	char idCard[19];
+	char password[7];
+	char tel[12];
+	char username[100];//卡号待查询
+	float money;
+	
+	struct Account * next;
+};
+
+typedef struct Account Account;
+
+Account * head=NULL;
+Account * tail=NULL;
+
+Account a;
+
+void signUp1()
+{
+	
+	printf("请输入姓名：\n");
+	scanf("%s",a.name);
+
+	printf("请输入身份证号：\n");
+	scanf("%s",a.idCard);
+
+	printf("请输入密码：\n");
+	scanf("%s",a.password);
+
+	printf("请输入电话号码：\n");
+	scanf("%s",a.name);
+
+	printf("请输入卡号：\n");
+	scanf("%s",a.username);
+
+	a.money=0.0f;
+	
+}
+
+void signIn1()
+{
+	printf("请输入卡号：\n");
+	scanf("%s",a.username);
+
+	printf("请输入密码：\n");
+	scanf("%s",a.password);
+	char s[6];
+	for(int i=0;i<3;i++)
+	{
+		if(s[6]=='a.password')
+		{
+	    	printf("第二界面!\n");
+	    	break;
+		}
+    	else
+		{
+    		printf("密码错误，请重新输入:\n");
+		}
+	}
+	if(i=3)
+	{
+		printf("账号冻结,操作结束!\n");
+
+	}
+
+}
+
+void showChinese()
+{
+	printf("输入1，创建账户\n");
+	printf("输入2，登录\n");
+	int c;
+	scanf("%d",&c);
+	if(c==1)
+	{
+		signUp1();
+	}
+	else if(c==2)
+	{
+		signIn1();
+	}
+}
+
+void showEnglish()
+{
+	//do something...
+}
+
+int findAccount(a)
+{
+	Account * curp=head;
+	while(curp!=NULL)
+	{
+		if()
+		{
+			return 1;
+		}
+		curp=curp->next;
+	}
+	return 0;
+}
+
+void signIn2()
+{
+    Account a;
+	printf("请输入账号:\n");
+    scanf("%s",a.username);
+
+	printf("请输入密码:\n");
+	scanf("%s",a.password);
+
+	if(findAccount(a))
+	{
+		printf("登陆成功!\n");
+		
+	}
+	else
+	{
+		printf("登陆失败!\n");
+	}
+}
+
+//加载成功返回1，加载失败返回0
+int loadData1()
+{
+	FILE* fp=fopen("D:/atm.txt","r");
+	if(fp==NULL)
+	{
+		return 0;
+	}
+	else
+	{
+		while(!feof(fp))
+		{
+			//创建结点(堆)
+			Account * newNode=(Account *)malloc(sizeof(Account));
+			//结点初始化
+			newNode->next=NULL;
+			fscanf(fp,"%s %s\n",newNode->username,newNode->password);
+
+			//添加结点到链表
+			if(head==NULL)
+			{
+				head=newNode;
+				tail=newNode;
+			}
+			else
+			{
+				tail->next=newNode;
+				tail=newNode;
+			}
+	     }
+		fclose(fp);
+		return 1;	
+	}
+	
+}
+
+void loadData2()
+{
+	FILE* fp=fopen("D:/atm.txt","r");
+	if(fp!=NULL)
+	{
+		while(!feof(fp))
+		{
+			//创建结点：申请一块堆内存空间，将其地址赋值给指针newNode
+			Account * newNode=(Account *)malloc(sizeof(Account));
+
+			//结点赋值
+			fscanf(fp,"%s %s %s\n",newNode->name,newNode->username,newNode->password);
+			newNode->next=NULL;
+
+			//将结点添加链表中
+			if(head==NULL)
+			{
+				head=newNode;
+				tail=newNode;
+			}
+			else
+			{
+				tail->next=newNode;
+				tail=newNode;
+			}
+
+		}
+		
+		printf("加载成功!\n");
+		fclose(fp);
+	}
+}
+
+void printAccount(Account a)
+{
+	printf("%s\t%s\t%s\n",a.name,a.username,a.password);
+}
+
+void printLinkedList()
+{
+	Account * curP=head;
+	while(curP!=NULL)
+	{
+		printAccount(*curP);
+		curP=curP->next;
+	}
+}
+
+void saveData()
+{
+	FILE* fp=fopen("D:/atm.txt","w");
+	if(fp!=NULL)
+	{
+		Account * curP=head;
+		while(curP!=NULL)
+		{
+			
+			fprintf(fp,"%s\t%s\t%s\n",curP->name,curP->username,curP->password);
+			curP=curP->next;
+		}
+		fclose(fp);
+	}
+}
+
+
+
+int main()
+{
+	printf("输入1，选择中文\n");
+	printf("Input 2，Show English\n");
+	int c;
+	scanf("%d",&c);
+	if(c==1)
+	{
+		showChinese();//显示中文菜单
+	}
+	else if(c==2)
+	{
+		showEnglish();//显示英文菜单
+	}
+
+	int status=loadData1();
+	if(status==1)
+	{
+		printf("加载成功!\n");
+	}
+	else
+	{
+		printf("加载失败!\n");
+	}
+
+	signIn2();
+
+    loadData2();
+
+	printLinkedList();
+
+	saveData();
+	return 0;
+}
