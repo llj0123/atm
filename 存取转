@@ -1,0 +1,276 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<time.h>
+
+struct Account
+{
+	char username[100];
+	char password[100];
+	int money;
+	
+	struct Account * next;
+};
+typedef struct Account Account;
+
+Account * head=NULL;
+Account * tail=NULL;
+Account * curAccount=NULL;//记录当前账户 
+
+Account * otherAccount=NULL;//记录对方账户
+
+struct TransactionRecord
+{
+	char username[100];
+	time_t timestamp;//时间戳 
+	int type;//交易类型 0-取钱，1-存钱，2-转出，3-转入
+	int amount;//数额 
+	
+	struct TransactionRecord * next; 
+}; 
+typedef struct TransactionRecord TR;
+
+TR * trHead=NULL;
+TR * trTail=NULL; 
+
+void drawMoney()
+{
+	int money;
+	printf("请输入取款金额：");
+	scanf("%d",&money);
+	
+	//从账户里面扣钱 
+	if(money>curAccount->money)
+	{
+		printf("余额不足！\n");
+	}
+	else
+	{
+		//记录交易记录 创建结点，赋值初始化，添加结点到链表
+		TR * newNode=(TR*)malloc(sizeof(TR));
+
+		curAccount->money=curAccount->money - money;
+		printf("取款成功！\n");
+		
+		
+		
+		newNode->next=NULL;
+		strcpy(newNode->username,curAccount->username);
+		newNode->type=0;
+		newNode->amount=money;
+		newNode->timestamp=time(NULL);
+		
+		if(trHead==NULL)
+		{
+			trHead=newNode;
+			trTail=newNode; 
+		}
+		else
+		{
+			trTail->next=newNode;
+			trTail=newNode;
+		}
+	}
+	
+}
+
+void loadData()
+{
+	FILE* fp=fopen("D:/atm.txt","r"); 
+	if(fp!=NULL)
+	{
+		while(!feof(fp))
+		{
+			//创建结点
+			Account *newNode=(Account *)malloc(sizeof(Account));
+			
+			//结点初始化
+			newNode->next=NULL;
+			fscanf(fp,"%s %s %f\n",newNode->username,newNode->password,&newNode->money);
+			
+			//添加结点到链表 
+			if(head==NULL)
+			{
+				head=newNode;
+				tail=newNode;
+			}
+			else
+			{
+				tail->next=newNode;
+				tail=newNode;
+			}
+		}
+		fclose(fp); 
+	}
+}
+
+int findAccount(Account a)
+{
+	Account * curP=head;
+	while(curP!=NULL)
+	{
+		if((strcmp(curP->username,a.username)==0)&(strcmp(curP->password,a.password)==0))
+		{
+			curAccount=curP;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+void signIn()
+{
+	Account a; 
+	printf("请输入账号：");
+	scanf("%s",a.username);
+	
+	printf("请输入密码：");
+	scanf("%s",a.password);
+	
+	if(findAccount(a))
+	{
+		printf("登录成功！\n");
+	}
+	else
+	{
+		printf("登录失败！\n");
+	}
+	
+} 
+
+void saveMoney()
+{
+	int money;
+	printf("请输入存钱金额：");
+	
+	scanf("%d",&money);
+	curAccount->money+=money;
+	printf("存款成功！\n");
+}
+
+void saveTransactionRecord()
+{
+	FILE* fp=fopen("D:/transation_record.txt","w");
+	TR* curP=trHead;
+	while(curP!=NULL)
+	{
+		fprintf(fp,"%s %ld %d %f\n",curP->username,curP->timestamp,curP->type,curP->amount);
+		curP=curP->next;
+	}
+	fclose(fp);
+}
+
+int findOtherAccount(char otherUsername[])
+{
+	Account* curp=head;
+	while(curp!=NULL)
+	{
+		if(strcmp(curp->username,otherUsername)==0)
+		{
+			otherAccount=curp;
+			return 1;
+		}
+		curp=curp->next;
+	}
+	return 0;
+}
+
+void transfer()
+{
+	char otherUsername[100];
+
+	//输入对方账户
+	printf("请输入对方账户：");
+	
+	scanf("%s",otherUsername);
+
+	//验证账号的合法性
+	if(findOtherAccount(otherUsername))
+	{
+		int money；
+
+		//输入转账金额
+		printf("请输入转账金额：");
+		
+		scanf("%d",&money);
+
+		//验证金额合法性
+		if(curAccount->money>=money)
+		{
+			//记录转账记录：转出(创建交易记录结点，初始化，添加到链表)
+			TR * newNodeOut=(TR*)malloc(sizeof(TR));
+
+			//转账（原账户的钱减少，对方账户的钱增多）
+			curAccount->money-=money;
+			otherAccount->money+=money;
+
+			//输出提示转账成功
+			printf("转账成功！\n");
+
+
+			
+		
+			newNodeOut->next=NULL;
+			strcpy(newNodeOut->username,curAccount->username);
+			newNodeOut->type=2;
+			newNodeOut->amount=money;
+			newNodeOut->timestamp=time(NULL);
+			
+			if(trHead==NULL)
+			{
+				trHead=newNodeOut;
+				trTail=newNodeOut; 
+			}
+			else
+			{
+				trTail->next=newNodeOut;
+				trTail=newNodeOut;
+			}
+
+
+			//记录转账记录：转入
+			TR * newNodeIn=(TR*)malloc(sizeof(TR));
+		
+			newNodeIn->next=NULL;
+			strcpy(newNodeIn->username,curAccount->username);
+			newNodeIn->type=3;
+			newNodeIn->amount=money;
+			newNodeIn->timestamp=time(NULL);
+			
+			if(trHead==NULL)
+			{
+				trHead=newNodeIn;
+				trTail=newNodeIn; 
+			}
+			else
+			{
+				trTail->next=newNodeIn;
+				trTail=newNodeIn;
+			}
+		}
+		else
+		{
+			printf("余额不足!\n");
+		}
+	}
+	else
+	{
+		printf("账户错误！\n");
+	}
+}
+
+int main()
+{
+	loadData();
+	signIn(); 
+	
+	//drawMoney();
+	
+	//saveMoney();
+
+	transfer();
+	
+	saveTransactionRecord(); 
+	
+	return 0;
+}
